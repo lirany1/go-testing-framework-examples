@@ -1,0 +1,150 @@
+name: Go Tests
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test:
+    name: Test Go Frameworks
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        go-version: ['1.21', '1.22', '1.23']
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: ${{ matrix.go-version }}
+
+    - name: Display Go version
+      run: go version
+
+    - name: Cache Go modules
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cache/go-build
+          ~/go/pkg/mod
+        key: ${{ runner.os }}-go-${{ matrix.go-version }}-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-${{ matrix.go-version }}-
+
+    - name: Download dependencies
+      run: go mod download
+
+    - name: Verify dependencies
+      run: go mod verify
+
+    - name: Run go fmt
+      run: |
+        if [ "$(gofmt -s -l . | wc -l)" -gt 0 ]; then
+          echo "Code is not formatted. Run 'gofmt -s -w .'"
+          gofmt -s -l .
+          exit 1
+        fi
+
+    - name: Run go vet
+      run: go vet ./...
+
+    - name: Test Built-in testing
+      run: go test -v -race -coverprofile=coverage-builtin.txt -covermode=atomic ./01_builtin_testing/...
+
+    - name: Test Testify
+      run: go test -v -race -coverprofile=coverage-testify.txt -covermode=atomic ./02_testify/...
+
+    - name: Install Ginkgo CLI
+      run: go install github.com/onsi/ginkgo/v2/ginkgo@latest
+
+    - name: Test Ginkgo + Gomega
+      run: |
+        cd 03_ginkgo_gomega
+        ginkgo -r -v --race --cover
+
+    - name: Test GoConvey
+      run: go test -v -race ./04_goconvey/...
+
+    - name: Test GoMock
+      run: go test -v -race ./05_gomock/...
+
+    - name: Test Godog
+      run: go test -v ./06_godog/...
+
+    # Note: Gauge tests require Gauge to be installed
+    # Uncomment if you have Gauge setup in CI
+    # - name: Install Gauge
+    #   run: |
+    #     curl -SsL https://downloads.gauge.org/stable | sh
+    #     gauge install go
+    # 
+    # - name: Test Gauge
+    #   run: |
+    #     cd 07_gauge
+    #     gauge run specs
+
+    - name: Test Gopter
+      run: go test -v -race ./08_gopter/...
+
+    - name: Test Rapid
+      run: go test -v -race ./09_rapid/...
+
+    # Note: Testcontainers tests require Docker
+    # They are skipped in short mode
+    - name: Test Testcontainers
+      run: go test -v -short ./10_testcontainers_go/...
+
+    - name: Test httpexpect
+      run: go test -v -race ./11_httpexpect/...
+
+    - name: Run all tests with coverage
+      run: go test -v -race -coverprofile=coverage.txt -covermode=atomic ./...
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v4
+      with:
+        files: ./coverage.txt
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: false
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.23'
+
+    - name: Run golangci-lint
+      uses: golangci/golangci-lint-action@v4
+      with:
+        version: latest
+        args: --timeout=5m
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.23'
+
+    - name: Build
+      run: go build -v ./...

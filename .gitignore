@@ -1,0 +1,41 @@
+# Ignore IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Ignore build artifacts
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# Ignore coverage files
+*.coverprofile
+coverage.txt
+coverage.html
+*.cover
+
+# Ignore dependency directories
+vendor/
+
+# Ignore Gauge artifacts
+logs/
+reports/
+.gauge/
+
+# Ignore test cache
+.cache/
+
+# Ignore temporary files
+tmp/
+temp/
+
+# Ignore Go workspace file
+go.work
+go.work.sum
