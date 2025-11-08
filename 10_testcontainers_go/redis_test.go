@@ -266,7 +266,9 @@ func TestRedisContainer_MultipleOperations(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to start Redis container: %v", err)
 	}
-	defer redisContainer.Terminate(ctx)
+	defer func() {
+		_ = redisContainer.Terminate(ctx) // Error ignored in defer - container cleanup
+	}()
 
 	// Get connection details
 	host, _ := redisContainer.Host(ctx)

@@ -24,7 +24,7 @@ func createAPIHandler() http.Handler {
 	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(map[string]string{
+		_ = json.NewEncoder(w).Encode(map[string]string{
 			"status": "healthy",
 		})
 	})
@@ -42,7 +42,7 @@ func createAPIHandler() http.Handler {
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(users)
+		_ = json.NewEncoder(w).Encode(users)
 	})
 
 	// GET /users/{id} - Get specific user
@@ -57,7 +57,7 @@ func createAPIHandler() http.Handler {
 		if id == "1" {
 			user := User{ID: 1, Name: "John Doe", Email: "john@example.com"}
 			w.Header().Set("Content-Type", "application/json")
-			json.NewEncoder(w).Encode(user)
+			_ = json.NewEncoder(w).Encode(user)
 		} else if id == "999" {
 			http.Error(w, "User not found", http.StatusNotFound)
 		} else {
@@ -81,7 +81,7 @@ func createAPIHandler() http.Handler {
 		user.ID = 3 // Simulate ID assignment
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusCreated)
-		json.NewEncoder(w).Encode(user)
+		_ = json.NewEncoder(w).Encode(user)
 	})
 
 	return mux
@@ -146,9 +146,9 @@ func TestGetUser(t *testing.T) {
 			Status(http.StatusOK).
 			JSON().Object()
 
-		obj.ValueEqual("id", 1)
-		obj.ValueEqual("name", "John Doe")
-		obj.ValueEqual("email", "john@example.com")
+		obj.HasValue("id", 1)
+		obj.HasValue("name", "John Doe")
+		obj.HasValue("email", "john@example.com")
 
 		// Alternative: check all fields at once
 		obj.IsEqual(User{
@@ -184,9 +184,9 @@ func TestCreateUser(t *testing.T) {
 		Status(http.StatusCreated).
 		JSON().Object()
 
-	obj.ValueEqual("id", 3)
-	obj.ValueEqual("name", "Alice Johnson")
-	obj.ValueEqual("email", "alice@example.com")
+	obj.HasValue("id", 3)
+	obj.HasValue("name", "Alice Johnson")
+	obj.HasValue("email", "alice@example.com")
 
 	// Verify specific fields exist
 	obj.ContainsKey("id")
@@ -230,7 +230,7 @@ func TestJSONAssertions(t *testing.T) {
 			},
 		}
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(response)
+		_ = json.NewEncoder(w).Encode(response)
 	})
 
 	server := httptest.NewServer(handler)
@@ -244,9 +244,9 @@ func TestJSONAssertions(t *testing.T) {
 		JSON().Object()
 
 	// Test different value types
-	obj.ValueEqual("name", "John")
-	obj.ValueEqual("age", 30)
-	obj.ValueEqual("active", true)
+	obj.HasValue("name", "John")
+	obj.HasValue("age", 30)
+	obj.HasValue("active", true)
 
 	// Test nested objects
 	obj.Value("address").Object().
@@ -280,7 +280,7 @@ func TestHeadersAndCookies(t *testing.T) {
 		})
 
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("OK"))
+		_, _ = w.Write([]byte("OK")) // Error ignored - test handler
 	})
 
 	server := httptest.NewServer(handler)
@@ -327,7 +327,7 @@ func TestQueryParameters(t *testing.T) {
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(response)
+		_ = json.NewEncoder(w).Encode(response)
 	})
 
 	server := httptest.NewServer(handler)

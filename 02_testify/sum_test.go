@@ -207,8 +207,8 @@ func TestMock_VerifyCallOrder(t *testing.T) {
 	mockRepo.On("SaveUser", user).Return(nil).Once()
 
 	// Call in specific order
-	mockRepo.GetUser(1)
-	mockRepo.SaveUser(user)
+	_, _ = mockRepo.GetUser(1)  // Error ignored - testing mock behavior
+	_ = mockRepo.SaveUser(user) // Error ignored - testing mock behavior
 
 	// Verify calls were made
 	mockRepo.AssertCalled(t, "GetUser", 1)

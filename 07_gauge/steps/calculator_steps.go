@@ -1,3 +1,6 @@
+//go:build gauge || ignore
+// +build gauge ignore
+
 package main
 
 import (
@@ -88,7 +91,7 @@ var _ = gauge.Step("Perform calculation with data table", func(table *models.Tab
 
 func parseInt(s string) int {
 	var i int
-	fmt.Sscanf(s, "%d", &i)
+	_, _ = fmt.Sscanf(s, "%d", &i) // Error ignored - returns 0 on failure which is acceptable for tests
 	return i
 }
 

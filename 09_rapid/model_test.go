@@ -40,9 +40,6 @@ func TestStackOperations(t *testing.T) {
 			}
 
 			// Invariant: stack length is always non-negative
-			if len(stack) < 0 {
-				t.Fatalf("stack length became negative")
-			}
 		}
 	})
 }
